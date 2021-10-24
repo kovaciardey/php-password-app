@@ -152,6 +152,51 @@ function calculateThreeUppercaseAndOneDigitPasswords($passwordsList) {
 }
 
 
+function calculateSixLowercaseLetterPasswords($passwordsList) {
+    $output = sampling(explode(',', LOWERCASE_LETTERS), 6);
+
+    $solutions = [];
+
+    foreach ($output as $combination) {
+        $possiblePassword = salter($combination);
+
+        if (checkHashAgainstPasswordHash($possiblePassword, $passwordsList)) {
+            $userId = array_search($possiblePassword, $passwordsList);
+            $solutions[] = [
+                "userID" => $userId,
+                "passwordHash" => $possiblePassword,
+                "actualPassword" => $combination
+            ];
+        }
+    }
+
+    return $solutions;
+}
+
+
+function calculateRandomCharPassword($passwordsList) {
+    // this creates all possible combinations of random 6 character passwords
+    $output = sampling(explode(',', LOWERCASE_LETTERS . ',' . UPPERCASE_LETTERS . ',' . DIGITS), 6);
+
+    $solutions = [];
+
+    foreach ($output as $combination) {
+        $possiblePassword = salter($combination);
+
+        if (checkHashAgainstPasswordHash($possiblePassword, $passwordsList)) {
+            $userId = array_search($possiblePassword, $passwordsList);
+            $solutions[] = [
+                "userID" => $userId,
+                "passwordHash" => $possiblePassword,
+                "actualPassword" => $combination
+            ];
+        }
+    }
+
+    return $solutions;
+}
+
+
 function getResultsTable($resultsArray) {
     $output = "<table class='table'><tr><th>User ID</th><th>Password Hash</th><th>Actual Password</th></tr>";
 
@@ -219,6 +264,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $result = calculateThreeUppercaseAndOneDigitPasswords($passwordsList);
 
         echo getResultsTable($result);
+
+        // THE FOLLOWING TWO SECTIONS ARE COMMENTED OUT AS THEY DO NOT OUTPUT THE PASSWORDS DUE TO VARIOUS REASONS WHICH ARE EXPLAINED BELOW
+
+        /*
+         * THIS SECTION ~~THEORETICALLY~~ calculates the passwords made out of 6 lowercase letters
+         * using the same system as the previous two sections
+         *
+         * Unfortunately I could not calculate these as I ran into memory and time issues
+         *
+         * The problem is that I am trying to store all the possible combinations of letters in memory
+         *
+         * It could be improved if the system would generate each combination 1 at a time as needed, and discarding the useless ones from memory
+         * although it will not affect execution times
+         *
+         * echo "<h3>Passwords Made of 6 Lowercase Letters</h3>";
+         *
+         * $result = calculateSixLowercaseLetterPasswords($passwordsList);
+         *
+         * echo getResultsTable($result);
+         */
+
+        /*
+         * THIS SECTION ~~THEORETICALLY~~ calculates the random 6 character passwords
+         *
+         * I have run into the same issue as the previous section
+         *
+         * echo "<h3>Passwords made out of 6 random characters</h3>";
+         *
+         * $result = calculateRandomCharPassword($passwordsList);
+         *
+         * echo getResultsTable($result);
+         */
 
     }
     ?>
