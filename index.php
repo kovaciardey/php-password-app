@@ -2,6 +2,8 @@
 
 // the passwords are loaded from the database on page load
 
+// the database was manually created and populated with the data from the 'not_so_smart_users.sql'
+
 $db_server = 'localhost';
 $db_username = 'root';
 $db_password = '';
@@ -124,6 +126,31 @@ function calculateFiveDigitPasswords($passwordsList) {
     return $solutions;
 }
 
+function calculateThreeUppercaseAndOneDigitPasswords($passwordsList) {
+    // create all possible combinations of 3 uppercase letters
+    $output = sampling(explode(',', UPPERCASE_LETTERS), 3);
+
+    $solutions = [];
+
+    // add the digit at the end and salt the password
+    foreach (explode(',', DIGITS) as $digit) {
+        foreach ($output as $combination) {
+            $possiblePassword = salter($combination . $digit);
+
+            if (checkHashAgainstPasswordHash($possiblePassword, $passwordsList)) {
+                $userId = array_search($possiblePassword, $passwordsList);
+                $solutions[] = [
+                    "userID" => $userId,
+                    "passwordHash" => $possiblePassword,
+                    "actualPassword" => $combination . $digit
+                ];
+            }
+        }
+    }
+
+    return $solutions;
+}
+
 
 function getResultsTable($resultsArray) {
     $output = "<table class='table'><tr><th>User ID</th><th>Password Hash</th><th>Actual Password</th></tr>";
@@ -181,11 +208,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <?php
     if ($formSubmitted)
     {
-        ?>
-            <h3>Passwords Made of 5 numbers</h3>
-        <?php
+        echo "<h3>Passwords Made of 5 numbers</h3>";
 
         $result = calculateFiveDigitPasswords($passwordsList);
+
+        echo getResultsTable($result);
+
+        echo "<h3>Passwords Made of 3 Uppercase Letters and 1 Digit</h3>";
+
+        $result = calculateThreeUppercaseAndOneDigitPasswords($passwordsList);
 
         echo getResultsTable($result);
 
